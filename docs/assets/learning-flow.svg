@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="452" viewBox="0 0 1120 452" role="img" aria-labelledby="title desc">
+  <title id="title">从创作者的发布顺序，到自己的学习顺序</title>
+  <desc id="desc">虚构示例：提问技巧、访谈整理、需求与方案三条视频，重组为先界定问题，再开展访谈，最后整理证据；每一步仍回到对应的原作学习。</desc>
+  <rect width="1120" height="452" rx="12" fill="#f5f5f2"/>
+  <g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif">
+    <text x="44" y="53" fill="#24262b" font-size="28" font-weight="650">收藏之后，知道从哪里开始。</text>
+    <text x="44" y="84" fill="#61646d" font-size="17">把发布时间，重新组织成学习顺序。</text>
+    <text x="44" y="137" fill="#61646d" font-size="16">创作者的发布顺序</text>
+    <path d="M62 172V335" stroke="#cacccf" stroke-width="2"/>
+    <g fill="#fcfcfb" stroke="#d8dadb"><rect x="44" y="155" width="350" height="52" rx="4"/><rect x="44" y="225" width="350" height="52" rx="4"/><rect x="44" y="295" width="350" height="52" rx="4"/></g>
+    <g font-size="16" fill="#747881"><text x="61" y="187">01</text><text x="61" y="257">02</text><text x="61" y="327">03</text></g>
+    <g font-size="20" fill="#34373d"><text x="103" y="188">别问用户会不会用你的产品</text><text x="103" y="258">访谈做完以后怎么整理</text><text x="103" y="328">需求和方案要分开</text></g>
+    <path d="M427 252H477m-9-9 9 9-9 9" stroke="#61646d" stroke-width="2" fill="none"/>
+    <text x="452" y="224" text-anchor="middle" fill="#61646d" font-size="15">梳理</text>
+    <text x="512" y="137" fill="#2457ae" font-size="16">你的学习顺序</text>
+    <path d="M536 182V321" stroke="#2457ae" stroke-width="2"/>
+    <g fill="#fcfcfb" stroke="#c9d5e7"><rect x="512" y="155" width="564" height="52" rx="4"/><rect x="512" y="225" width="564" height="52" rx="4"/><rect x="512" y="295" width="564" height="52" rx="4"/></g>
+    <g font-size="17" fill="#2457ae" font-weight="600"><text x="529" y="187">1</text><text x="529" y="257">2</text><text x="529" y="327">3</text></g>
+    <g font-size="21" fill="#24262b" font-weight="600"><text x="570" y="188">先把问题说清楚</text><text x="570" y="258">围绕真实经历做访谈</text><text x="570" y="328">整理证据与假设</text></g>
+    <g font-size="16" fill="#2457ae"><text x="958" y="187">↗ 原作 03</text><text x="958" y="257">↗ 原作 01</text><text x="958" y="327">↗ 原作 02</text></g>
+    <path d="M44 379H1076" stroke="#dedfdf"/>
+    <text x="44" y="415" fill="#61646d" font-size="17">按知识找视频　·　看清先修关系　·　带着问题学　·　随手查资料</text>
+    <text x="1076" y="415" text-anchor="end" fill="#747881" font-size="14">自写虚构示例</text>
+  </g>
+</svg>

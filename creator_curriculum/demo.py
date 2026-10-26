@@ -100,7 +100,7 @@ def build_demo(workspace):
 def build_index_demo(output):
     """Demonstrate the default navigation workflow without acquiring or transcribing."""
     from pathlib import Path
-    from .core import digest
+    from .core import atomic_text, digest
     from .index import build_index
     corpus = demo_corpus()
     topics = []
@@ -108,16 +108,40 @@ def build_index_demo(output):
         ('problem', 'v_foundation', '先把问题说清楚', [], '需求和方案有什么区别？', '观察从功能请求追问到任务与障碍的过程。', '能把一个功能请求改写为待验证的问题。'),
         ('interview', 'v_questions', '围绕真实经历做访谈', ['problem'], '怎样问到具体经历？', '留意发生时间、处理过程、替代办法三个追问。', '能提出一个不预设答案的经历问题。'),
         ('synthesis', 'v_synthesis', '整理证据与假设', ['interview'], '怎样防止把猜测当证据？', '将原话、行为和自己的解释分开。', '能为一个假设写出证据与潜在反例。')]:
-        topics.append(dict(id=tid, title=title, group=title, question=question,
-                           guidance='这是一条虚构演示来源，用于展示导航结构。',
+        topics.append(dict(id=tid, title=title,
+                           group={'problem': '01 界定问题', 'interview': '02 开展访谈', 'synthesis': '03 整理证据'}[tid],
+                           question=question,
+                           guidance={'problem': '先看“需求和方案要分开”。把具体的人、情境、任务和障碍写清楚，再进入提问方法；先不要急着设计功能。',
+                                     'interview': '带着上一节的问题假设，寻找一次真实发生的经历。先问处理过程，再追问花费与替代办法；把原话和自己的解释分开记录。',
+                                     'synthesis': '回到访谈记录，按任务与情境比较实际行为。为每个问题假设写出支持证据、一个潜在反例和下一次要验证的问题。'}[tid],
                            prerequisites=deps, watch_for=focus, self_check=check,
                            video_ids=[vid], recommended_ids=[vid]))
-    plan = dict(schema_version=1, source_hash=digest(corpus), title='用户访谈知识地图（虚构演示）',
-                goal='先找知识点，再回到相应来源。', overview='展示学习顺序、知识节点和资料索引，不调用模型。',
-                topics=topics, start_path=['problem', 'interview', 'synthesis'], reviews={},
-                materials=[], learning_advice=['一次选择一个知识点，尝试复述后再回到证据核对。'],
-                limitations=['全部内容为仓库自写虚构材料，没有真实原视频链接。', '4 条虚构记录中，3 条教学记录进入地图；1 条更新通知保留在 corpus 中。'])
+    materials = [
+        ('problem', '问题陈述检查表', 'problem-checklist.md',
+         '先写清谁、情境、任务与障碍，再检查有没有把功能方案混进问题。',
+         '# 问题陈述检查表\n\n本项目自写演示模板，不是创作者原始课件。\n\n- 谁：\n- 在什么情境下：\n- 想完成什么任务：\n- 遇到了什么障碍：\n- 哪些是已知事实：\n- 哪些还要核实：\n\n检查：这句话是否提前指定了某个按钮或功能？\n'),
+        ('interview', '四栏访谈记录', 'interview-notes.md',
+         '记录具体场景、原话、实际行为和待核实问题，留出空间写自己的解释。',
+         '# 四栏访谈记录\n\n本项目自写演示模板，不是创作者原始课件。\n\n| 具体场景 | 原话 | 实际行为 | 待核实问题 |\n|---|---|---|---|\n| | | | |\n\n## 我的解释（与原话分开）\n\n\n'),
+        ('synthesis', '证据与假设对照表', 'evidence-log.md',
+         '把问题假设、支持证据和可能的反例放在一起，再决定下一步验证什么。',
+         '# 证据与假设对照表\n\n本项目自写演示模板，不是创作者原始课件。\n\n| 问题假设 | 对应原话或行为 | 潜在反例 | 下一次验证问题 |\n|---|---|---|---|\n| | | | |\n\n少量访谈不能直接代表所有用户。未知信息保留为空，完成记录也不等于掌握。\n')]
     out = Path(output)
+    for _, _, filename, _, body in materials:
+        # A rerun must not overwrite a learner's filled-in notes.
+        if not (out/'materials'/filename).exists():
+            atomic_text(out/'materials'/filename, body)
+    plan = dict(schema_version=1, source_hash=digest(corpus), title='从零开始学用户访谈｜虚构演示',
+                goal='先找知识点，再回到相应来源。', overview='将零散内容组织成“界定问题 → 开展访谈 → 整理证据”的学习路线。选择一个问题，查看对应来源、观看重点与记录模板。全部为仓库自写演示，不调用模型。',
+                topics=topics, start_path=['problem', 'interview', 'synthesis'], reviews={},
+                materials=[dict(title=title, description=description, origin='agent',
+                                status='自写演示模板 · 本地 Markdown', url=None,
+                                local_path='materials/'+filename, topic_ids=[tid])
+                           for tid, title, filename, description, _ in materials],
+                learning_advice=['一次选择一个知识点，尝试复述后再回到证据核对。',
+                                 '从资料页打开记录模板，填写自己的实际观察。空白表示尚未记录，不代表没有问题或已经通过。',
+                                 '完成一轮访谈后，回看自己的提问和记录：哪些是对方的事实，哪些只是自己的猜测？'],
+                limitations=['全部内容为仓库自写虚构材料，没有真实原视频链接。', '4 条虚构记录中，3 条教学记录进入地图；1 条更新通知保留在 corpus 中。'])
     write_json(out/'corpus.json', corpus)
     write_json(out/'index-plan.json', plan)
     return build_index(corpus, plan, out)
