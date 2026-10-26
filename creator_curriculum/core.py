@@ -141,6 +141,8 @@ def validate_corpus(corpus):
             require(duration is None or end <= duration + 1, f"{vid}/{sid}: exceeds duration")
             previous_start = start
             string(segment.get("text"), f"{vid}/{sid}.text")
+            require(segment.get("evidence_kind", "speech_transcript") in {"speech_transcript", "screen_ocr"},
+                    f"{vid}/{sid}: invalid evidence_kind; machine evidence cannot assert human verification")
     if discovery["status"] == "complete":
         require(expected is not None and expected == len(videos), "Complete discovery requires an independently declared count equal to the inventory")
     return corpus
@@ -231,6 +233,76 @@ def validate_notes(notes, job):
     for issue in sequence(notes.get("uncertainties"), "notes.uncertainties"):
         string(issue, "uncertainty")
     return notes
+
+
+def validate_index_plan(plan, corpus):
+    """A navigational index may use titles; it must not promote them to content evidence."""
+    validate_corpus(corpus)
+    obj(plan, "index plan")
+    require(plan.get("schema_version") == 1, "index.schema_version must be 1")
+    require(plan.get("source_hash") == digest(corpus), "Stale index: source inventory changed")
+    for field in ("title", "goal", "overview"):
+        string(plan.get(field), f"index.{field}")
+    videos = {v["id"]: v for v in corpus["videos"]}
+    ids, used = set(), set()
+    topics = sequence(plan.get("topics"), "index.topics", nonempty=True)
+    for topic in topics:
+        obj(topic, "index topic")
+        tid = identifier(topic.get("id"), "topic.id")
+        require(tid not in ids, f"Duplicate topic: {tid}")
+        ids.add(tid)
+        for field in ("title", "group", "question", "guidance"):
+            string(topic.get(field), f"topic.{field}")
+        seen = set()
+        for vid in sequence(topic.get("video_ids"), "topic.video_ids", nonempty=True):
+            require(vid in videos and vid not in seen, f"Unknown or duplicate video in topic: {vid}")
+            require(videos[vid]["status"] != "excluded", "Excluded source identity cannot enter an index")
+            seen.add(vid); used.add(vid)
+        for vid in sequence(topic.get("recommended_ids", []), "topic.recommended_ids"):
+            require(vid in seen, "Recommended video must belong to its topic")
+    for tid in sequence(plan.get("start_path"), "index.start_path"):
+        require(tid in ids, f"Unknown start topic: {tid}")
+    graph = {}
+    for topic in topics:
+        deps = sequence(topic.get("prerequisites", []), "topic.prerequisites")
+        require(all(dep in ids for dep in deps), "Unknown index prerequisite")
+        graph[topic["id"]] = deps
+        for field in ("watch_for", "self_check"):
+            if field in topic:
+                string(topic[field], f"topic.{field}")
+    visiting, visited = set(), set()
+    def visit(tid):
+        require(tid not in visiting, "Index prerequisite graph contains a cycle")
+        if tid in visited: return
+        visiting.add(tid)
+        for dep in graph[tid]: visit(dep)
+        visiting.remove(tid); visited.add(tid)
+    for tid in ids: visit(tid)
+    for resource in sequence(plan.get("materials", []), "index.materials"):
+        obj(resource, "index material")
+        for field in ("title", "description", "status"):
+            string(resource.get(field), f"material.{field}")
+        require(resource.get("origin") in {"creator", "external", "agent"}, "Invalid material origin")
+        url(resource.get("url"), "material.url", optional=True)
+        for tid in sequence(resource.get("topic_ids", []), "material.topic_ids"):
+            require(tid in ids, "Material references an unknown topic")
+        if resource.get("local_path") is not None:
+            path = Path(string(resource["local_path"], "material.local_path"))
+            require(not any(c in resource["local_path"] for c in (":", "?", "#", "\\")) and not path.is_absolute() and ".." not in path.parts, "Material path must stay inside the index folder")
+    for vid, review in obj(plan.get("reviews", {}), "index.reviews").items():
+        require(vid in used, "Review must belong to an indexed video")
+        obj(review, "index review")
+        string(review.get("note"), "review.note")
+        # Quote validation is shared with curriculum extraction. No title-only shortcut.
+        validate_evidence(review.get("evidence"), {"segments": videos[vid]["segments"]}, "index review")
+        for entry in review["evidence"]:
+            if "label" in entry:
+                string(entry["label"], "index evidence label")
+    for advice in sequence(plan.get("learning_advice", []), "index.learning_advice"):
+        string(advice, "learning advice")
+    for note in sequence(plan.get("limitations", []), "index.limitations"):
+        string(note, "index limitation")
+    return used
 
 
 def validate_plan(plan, synthesis):

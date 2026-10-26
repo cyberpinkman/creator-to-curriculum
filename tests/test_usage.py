@@ -3,7 +3,7 @@ import tempfile
 import unittest
 
 from creator_curriculum.core import ContractError
-from creator_curriculum.usage import estimate, import_codex_usage, record_usage, usage_report
+from creator_curriculum.usage import estimate, import_codex_usage, record_usage, usage_report, import_response_usage
 
 
 class UsageTests(unittest.TestCase):
@@ -40,6 +40,23 @@ class UsageTests(unittest.TestCase):
         long = estimate(videos=1, minutes=60)
         self.assertGreater(short["low"]["total_tokens"], long["low"]["total_tokens"])
         self.assertEqual(short["assumed_characters"], long["assumed_characters"])
+
+    def test_provider_response_usage_is_independent_of_content_success(self):
+        import json
+        path = self.root / "response.json"
+        path.write_text(json.dumps({"provider": "test", "model": "test", "ok": False,
+                                   "request_id": "request-1", "usage": {"prompt_tokens": 100,
+                                   "completion_tokens": 20, "prompt_tokens_details": {"cached_tokens": 60},
+                                   "completion_tokens_details": {"reasoning_tokens": 5}}}))
+        first = import_response_usage(self.root, path, stage="extraction")
+        self.assertEqual(first["output_tokens"], 20)  # reasoning is already included
+        self.assertEqual(first["cached_input_tokens"], 60)
+        with self.assertRaises(ContractError):
+            import_response_usage(self.root, path, stage="extraction")
+        path.write_text(json.dumps({"provider": "test", "model": "test", "usage": None}))
+        event = import_response_usage(self.root, path, stage="extraction", event_id="unknown")
+        self.assertEqual(event["basis"], "unknown")
+        self.assertIsNone(event["input_tokens"])
 
 
 if __name__ == "__main__":

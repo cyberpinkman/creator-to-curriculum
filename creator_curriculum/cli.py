@@ -7,7 +7,8 @@ from .adapters import discover, import_video_learning, parse_subtitles
 from .core import ContractError, read_json, require, validate_corpus, write_json
 from .pipeline import initialize, inspect, load_workspace, prepare, synthesize
 from .render import render
-from .usage import STAGES, estimate, import_codex_usage, record_usage, usage_report
+from .index import build_index
+from .usage import STAGES, estimate, import_codex_usage, import_response_usage, record_usage, usage_report
 
 
 def parser():
@@ -41,8 +42,14 @@ def parser():
     attach.add_argument("--video", required=True)
     attach.add_argument("--file", required=True)
     attach.add_argument("--source", choices=["machine_transcript", "platform_subtitles", "human_transcript", "unknown"], required=True)
+    nav_demo = commands.add_parser("demo-index", help="Build a fictional interactive knowledge map offline")
+    nav_demo.add_argument("--out", default=".learning/demo-index")
     demo = commands.add_parser("demo", help="Build a complete fictional example offline; no model or download required")
     demo.add_argument("--out", default=".learning/demo")
+    index = commands.add_parser("build-index", help="Build a knowledge map and original-video index without full transcription")
+    index.add_argument("--corpus", required=True)
+    index.add_argument("--plan", required=True)
+    index.add_argument("--out", required=True)
     usage = commands.add_parser("usage-record", help="Record provider-reported token usage or explicitly unknown usage")
     usage.add_argument("workspace")
     usage.add_argument("--stage", choices=STAGES, required=True)
@@ -59,6 +66,12 @@ def parser():
     codex = commands.add_parser("usage-import-codex", help="Import an explicit session log's cumulative development counters without copying conversation content")
     codex.add_argument("workspace")
     codex.add_argument("--log", required=True)
+    response = commands.add_parser("usage-import-response", help="Import saved provider counters even when content validation failed")
+    response.add_argument("workspace")
+    response.add_argument("--file", required=True)
+    response.add_argument("--stage", choices=STAGES, required=True)
+    response.add_argument("--event-id")
+    response.add_argument("--video-ids", nargs="*", default=[])
     budget = commands.add_parser("estimate", help="Show a planning range with explicit assumptions; not a benchmark")
     budget.add_argument("--videos", type=int, required=True)
     budget.add_argument("--minutes", type=float, required=True, help="Total duration across all videos")
@@ -69,6 +82,14 @@ def parser():
 
 
 def run(args):
+    if args.command == "demo-index":
+        from .demo import build_index_demo
+        return {"index": str(build_index_demo(args.out)), "source": "Fictional authored example; no model calls"}
+    if args.command == "build-index":
+        return {"index": str(build_index(read_json(args.corpus), read_json(args.plan), args.out))}
+    if args.command == "usage-import-response":
+        return import_response_usage(args.workspace, args.file, stage=args.stage,
+                                     event_id=args.event_id, video_ids=args.video_ids)
     if args.command == "usage-record":
         return record_usage(args.workspace, stage=args.stage, provider=args.provider, model=args.model, source=args.source,
                             basis=args.basis, input_tokens=args.input_tokens, output_tokens=args.output_tokens,

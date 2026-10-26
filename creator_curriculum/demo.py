@@ -95,3 +95,29 @@ def build_demo(workspace):
                                     "modules": modules, "omitted_claims": [], "conflicts": [],
                                     "gaps": ["原材料没有解释如何招募受访者、获取访谈同意和选择样本，执行真实研究前需要补充。", "没有真实访谈录像可用于示范或评估提问技巧。"]})
     return render(root)
+
+
+def build_index_demo(output):
+    """Demonstrate the default navigation workflow without acquiring or transcribing."""
+    from pathlib import Path
+    from .core import digest
+    from .index import build_index
+    corpus = demo_corpus()
+    topics = []
+    for tid, vid, title, deps, question, focus, check in [
+        ('problem', 'v_foundation', '先把问题说清楚', [], '需求和方案有什么区别？', '观察从功能请求追问到任务与障碍的过程。', '能把一个功能请求改写为待验证的问题。'),
+        ('interview', 'v_questions', '围绕真实经历做访谈', ['problem'], '怎样问到具体经历？', '留意发生时间、处理过程、替代办法三个追问。', '能提出一个不预设答案的经历问题。'),
+        ('synthesis', 'v_synthesis', '整理证据与假设', ['interview'], '怎样防止把猜测当证据？', '将原话、行为和自己的解释分开。', '能为一个假设写出证据与潜在反例。')]:
+        topics.append(dict(id=tid, title=title, group=title, question=question,
+                           guidance='这是一条虚构演示来源，用于展示导航结构。',
+                           prerequisites=deps, watch_for=focus, self_check=check,
+                           video_ids=[vid], recommended_ids=[vid]))
+    plan = dict(schema_version=1, source_hash=digest(corpus), title='用户访谈知识地图（虚构演示）',
+                goal='先找知识点，再回到相应来源。', overview='展示学习顺序、知识节点和资料索引，不调用模型。',
+                topics=topics, start_path=['problem', 'interview', 'synthesis'], reviews={},
+                materials=[], learning_advice=['一次选择一个知识点，尝试复述后再回到证据核对。'],
+                limitations=['全部内容为仓库自写虚构材料，没有真实原视频链接。', '4 条虚构记录中，3 条教学记录进入地图；1 条更新通知保留在 corpus 中。'])
+    out = Path(output)
+    write_json(out/'corpus.json', corpus)
+    write_json(out/'index-plan.json', plan)
+    return build_index(corpus, plan, out)

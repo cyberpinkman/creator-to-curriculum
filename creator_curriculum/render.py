@@ -39,7 +39,8 @@ def citation(evidence):
     label = f'{evidence["video_title"]} · {timecode(evidence["start"])}–{timecode(evidence["end"])}'
     target = timestamp_url(evidence["url"], evidence["start"])
     rendered = link(label, target) if target else text(label)
-    return f'- {rendered} · {text(evidence["transcript_source"])}\n  > {text(evidence["quote"])}'
+    kind = "抽帧画面文字（机器 OCR）" if evidence.get("evidence_kind") == "screen_ocr" else "字幕或语音转写"
+    return f'- {rendered} · {kind} · {text(evidence["transcript_source"])}\n  > {text(evidence["quote"])}'
 
 
 def bullets(items):
@@ -55,9 +56,15 @@ def render(workspace, *, allow_partial=False):
     out = root / "packs" / revision
     out.mkdir(parents=True, exist_ok=True)
     coverage = synthesis["coverage"]
-    scope_label = "声明清单内的已导入转写均已提取" if coverage["complete_for_declared_scope"] else "部分覆盖草稿"
-    banner = (f'> {scope_label}。知识内容来自转写证据；课程排序、解释组织、练习和时长估算由 Agent 生成。\n'
-              '> 引用校验仅确认片段存在，不证明解释正确、原视频观点正确或学习者已经掌握。画面、课件与演示尚未核验。\n')
+    has_ocr = "screen_ocr" in coverage.get("evidence_kinds", [])
+    has_speech = "speech_transcript" in coverage.get("evidence_kinds", [])
+    evidence_label = ("语音转写及抽帧画面文字（机器 OCR）" if has_ocr and has_speech
+                      else "抽帧画面文字（机器 OCR）" if has_ocr else "转写证据")
+    visual_boundary = ("抽帧 OCR 不等于连续视听审阅；口型、动作、音素和公式仍需核对。" if has_ocr
+                       else "画面、课件与演示尚未核验。")
+    scope_label = "声明清单内的已导入证据均已提取" if coverage["complete_for_declared_scope"] else "部分覆盖草稿"
+    banner = (f'> {scope_label}。知识内容来自{evidence_label}；课程排序、解释组织、练习和时长估算由 Agent 生成。\n'
+              f'> 引用校验仅确认片段存在，不证明解释正确、原视频观点正确或学习者已经掌握。{visual_boundary}\n')
     claims = {c["ref"]: c for c in synthesis["claims"]}
     modules = {m["id"]: m for m in plan["modules"]}
     overview = [f'# {text(plan["title"])}', banner, text(plan["overview"]),
@@ -109,7 +116,7 @@ def render(workspace, *, allow_partial=False):
                             *[citation(e) for e in claim["evidence"]]])
     if len(methods) == 2:
         methods.append('现有证据未提取到可核对的分步方法。')
-    references = ['# 参考资料', '此处仅列出创作者在转写中提及的资料。标题已知但网址未出现在证据中时，不生成猜测链接。']
+    references = ['# 参考资料', '此处仅列出创作者在来源证据中提及的资料。标题已知但网址未出现在证据中时，不生成猜测链接。']
     for resource in synthesis["resources"]:
         title = link(resource["title"], resource["url"]) if resource["url"] else text(resource["title"]) + '（网址待核实）'
         references.extend([f'## {title}', *[citation(e) for e in resource["evidence"]]])
@@ -117,7 +124,7 @@ def render(workspace, *, allow_partial=False):
         references.append('尚未找到带有来源证据的参考资料。')
     gap_lines = ['# 缺口与分歧', '## 学习缺口', bullets(plan["gaps"]) or 'Agent 未报告学习缺口；这不等于内容已覆盖整个领域。',
                  '## 转写与视觉不确定性', bullets([u["text"] for u in synthesis["uncertainties"]]) or '提取阶段未记录额外不确定性。',
-                 '当前版本没有导入画面证据；画面中的操作、公式和原始课件仍需核对。', '## 观点分歧']
+                 visual_boundary, '## 观点分歧']
     for conflict in plan["conflicts"]:
         gap_lines.append(text(conflict["description"]))
         for ref in conflict["claim_refs"]:

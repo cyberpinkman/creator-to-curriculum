@@ -33,6 +33,7 @@
 - 转写来源：`machine_transcript | platform_subtitles | human_transcript | unknown | synthetic`。`synthetic` 仅用于明示的虚构演示。
 - 可选 `source_author` 保留源作者标签。标签与目标作者不一致时保留为 `excluded` 待身份核对，不能把账号接口夹带的异账号条目直接归给目标创作者；若是历史改名，应先核实身份再规范化标签，并把核对依据写入 notes。
 - 时间戳：秒数，有限非负，`start < end`，按开始时间递增；允许字幕重叠。未知时长为 `null`，无时间信息不能编造时间戳。
+- 片段可选 `evidence_kind` 为 `speech_transcript`（默认）或 `screen_ocr`。OCR 应保留原始识别结果、抽帧间隔和原帧位置；采样区间不能冒充精确字幕时刻。它是画面文字机器证据，不代表连续视听或人工核验。该类型会随引用保留到课程中。
 - 真实账号原始数据放 `.learning/`，不放开源示例目录。
 
 ## Jobs：CLI 生成，Agent 读取
@@ -120,3 +121,39 @@
 `prerequisites` 引用模块 ID，不能形成环；导出器按先修关系排序。`conflicts` 每项为 `{"description":"差异和适用情境","claim_refs":["引用一","引用二"]}`。
 
 练习、教学排序和预计时长属于 Agent 设计；创作者提出的原方法在 `methods.md` 中依证据单独呈现。构建会重新计算全部输入，旧的 `synthesis.json` 不能绕过新证据导致的失效。
+
+## 知识地图与原视频索引
+
+`build-index --corpus corpus.json --plan index-plan.json --out DIR` 在 `core.py` 校验，不要求视频已有转写。最小计划如下（ID 必须来自真实 corpus）：
+
+```json
+{
+  "schema_version": 1,
+  "source_hash": "digest(corpus) 的实际值",
+  "title": "知识地图",
+  "goal": "按问题找到原视频",
+  "overview": "这份导航的范围",
+  "topics": [{
+    "id": "basics", "title": "基础", "group": "01 起步",
+    "question": "这一节解决什么问题？",
+    "guidance": "为什么先看这些来源？",
+    "video_ids": ["REAL_VIDEO_ID"], "recommended_ids": ["REAL_VIDEO_ID"],
+    "prerequisites": [],
+    "watch_for": "看示范时关注什么？",
+    "self_check": "怎样发现自己仍不理解？"
+  }],
+  "start_path": ["basics"],
+  "learning_advice": ["一次选一个问题，再回原视频核对。"],
+  "reviews": {},
+  "materials": [],
+  "limitations": ["标题归类不等于内容核验。"]
+}
+```
+
+`source_hash` 由 `creator_curriculum.core.digest(corpus)` 生成。先修关系必须无环；推荐视频必须在所属主题内；`excluded` 来源不能进入索引。同一视频可关联多个主题，页面总数按唯一视频计数。原 corpus 保留未进入索引的记录，索引不声称全账号已经观看。
+
+`reviews[video_id]` 为 `{ "note": "内容定位说明", "evidence": [{"segment_id": "...", "quote": "该段连续原文"}] }`。共享引文校验拒绝凭空引用和没有内容的“已核对”标记。渲染自动从 corpus 展示相应时间与证据类型；不伪造平台时间戳跳转能力。
+
+`materials` 每项包含 `title`、`description`、`status`、`origin`（`creator` / `external` / `agent`），可带公开 `url`、`topic_ids` 与输出目录内的 `local_path`。绝对路径、路径穿越、URL 协议伪装及指向目录外的符号链接均不可作为本地文件。构建检查文件实际存在，但不能自动判断资源状态描述是否诚实，Agent 仍须核对。建议另存材料 manifest，记录来源 URL、获取时间、SHA-256 及截图的原视频时间范围。
+
+输出：`index.html`、`knowledge-map.svg`、`README.md`、`video-index.csv`、`materials.md` 和可复用的 `index.json`。HTML 内嵌数据防止来源文本执行为脚本；CSV 对公式开头文本作文本转义。

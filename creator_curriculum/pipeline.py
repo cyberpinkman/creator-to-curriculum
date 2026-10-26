@@ -44,8 +44,11 @@ def inspect(workspace):
     analyzed = [vid for vid in ready_ids if all(j["job_id"] in finished_jobs for j in jobs if j["video"]["id"] == vid)]
     blocked = [{"id": v["id"], "title": v["title"], "status": v["status"], "reason": v["reason"]}
                for v in corpus["videos"] if v["status"] != "ready"]
+    evidence_kinds = sorted({s.get("evidence_kind", "speech_transcript")
+                             for v in corpus["videos"] for s in v["segments"]})
     status = {"discovery": corpus["discovery"], "inventory_count": len(corpus["videos"]),
-              "evidence_basis": "imported_transcripts_only; full audiovisual review is unverified",
+              "evidence_basis": f'imported evidence: {", ".join(evidence_kinds) or "none"}; full audiovisual review is unverified',
+              "evidence_kinds": evidence_kinds,
               "transcript_ready_count": len(ready_ids), "analyzed_video_count": len(analyzed),
               "job_count": len(jobs), "accepted_job_count": len(accepted),
               "pending_jobs": pending, "invalid_jobs": invalid, "blocked_videos": blocked,
@@ -79,6 +82,7 @@ def synthesize(workspace, *, allow_partial=False, save=True):
             return [{"video_id": job["video"]["id"], "video_title": job["video"]["title"],
                      "url": job["video"]["url"], "transcript_source": job["video"]["transcript_source"],
                      "segment_id": segment_map[item["segment_id"]]["source_segment_id"],
+                     "evidence_kind": segment_map[item["segment_id"]].get("evidence_kind", "speech_transcript"),
                      "start": segment_map[item["segment_id"]]["start"],
                      "end": segment_map[item["segment_id"]]["end"], "quote": item["quote"]} for item in items]
 

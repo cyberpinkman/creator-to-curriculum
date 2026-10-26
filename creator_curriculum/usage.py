@@ -46,6 +46,30 @@ def record_usage(workspace, *, stage, provider, model, source, basis="reported",
     return event
 
 
+def import_response_usage(workspace, response_path, *, stage, event_id=None, video_ids=None):
+    """Record provider counters independently of generation or validation success."""
+    response = obj(read_json(response_path), "provider response")
+    provider = string(response.get("provider"), "response.provider")
+    model = string(response.get("model"), "response.model")
+    usage = response.get("usage") or {}
+    obj(usage, "response.usage")
+    inp = usage.get("prompt_tokens", usage.get("input_tokens"))
+    out = usage.get("completion_tokens", usage.get("output_tokens"))
+    details = usage.get("prompt_tokens_details", usage.get("input_tokens_details")) or {}
+    obj(details, "response.usage.input_details")
+    reported = inp is not None and out is not None
+    identity = response.get("request_id") or response.get("id") or str(Path(response_path).resolve())
+    return record_usage(
+        workspace, stage=stage, provider=provider, model=model,
+        event_id=event_id or f"response-{digest([provider, model, identity])[:24]}", video_ids=video_ids,
+        basis="reported" if reported else "unknown", input_tokens=inp if reported else None,
+        output_tokens=out if reported else None,
+        cached_input_tokens=details.get("cached_tokens") if reported else None,
+        source=f'Saved response {Path(response_path).name}; request {identity}; '
+               f'HTTP {response.get("http_status", "unknown")}; finish {response.get("finish_reason", "unknown")}; '
+               'provider counters, regardless of generation/validation outcome')
+
+
 def import_codex_usage(workspace, log_path):
     """Only extracts aggregate counters from an explicitly supplied current-session log."""
     import json

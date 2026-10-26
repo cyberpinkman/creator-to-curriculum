@@ -36,6 +36,7 @@ class EvidenceContractTests(unittest.TestCase):
             lambda c: c["videos"][0].update(id="../../elsewhere"),
             lambda c: c["videos"][0].update(source_author="A different creator"),
             lambda c: c["videos"][0].update(duration_seconds=0),
+            lambda c: c["videos"][0]["segments"][0].update(evidence_kind="human_verified_video"),
         ]
         for mutation in mutations:
             with self.subTest(mutation=mutation):
@@ -79,6 +80,27 @@ class PipelineTests(unittest.TestCase):
                 mutation(notes)
                 with self.assertRaises(ContractError):
                     validate_notes(notes, job)
+
+    def test_evidence_modality_survives_synthesis_and_rendering(self):
+        corpus = read_json(self.root / "corpus.json")
+        corpus["videos"][0]["segments"][0]["evidence_kind"] = "screen_ocr"
+        write_json(self.root / "corpus.json", corpus)
+        jobs = prepare(self.root)
+        for job in load_workspace(self.root)[-1]:
+            path = self.root / "notes" / f'{job["job_id"]}.json'
+            note = read_json(path)
+            note["input_hash"] = job["input_hash"]
+            write_json(path, note)
+        synthesis = synthesize(self.root)
+        self.assertIn("screen_ocr", synthesis["coverage"]["evidence_basis"])
+        evidence = [e for c in synthesis["claims"] for e in c["evidence"]]
+        self.assertTrue(any(e.get("evidence_kind") == "screen_ocr" for e in evidence))
+        plan = read_json(self.root / "plan.json")
+        plan["input_hash"] = synthesis["input_hash"]
+        write_json(self.root / "plan.json", plan)
+        pack = render(self.root)
+        self.assertIn("抽帧画面文字", (pack / "index.md").read_text())
+        self.assertNotIn("没有导入画面证据", (pack / "gaps.md").read_text())
 
     def test_source_changes_invalidate_notes_before_export(self):
         corpus = read_json(self.root / "corpus.json")
