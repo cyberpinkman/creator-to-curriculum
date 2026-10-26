@@ -38,7 +38,12 @@ function duration(seconds) {
   return n >= 60 ? `${Math.floor(n / 60)} 分 ${n % 60} 秒` : `${n} 秒`;
 }
 function readableTitle(title) {
-  return title.replace(/#[^\s#]+/g, '').trim() || title;
+  const text = title.replace(/#[^\s#]+/g, '').trim() || title;
+  // Platforms sometimes put a multi-paragraph caption in the title field.
+  // Keep the complete source in the disclosure, and a short label in every list.
+  const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+  const first = Array.from(lines[0] || text);
+  return first.slice(0, 120).join('') + (lines.length > 1 || first.length > 120 ? '…' : '');
 }
 function heading(title, eyebrow) {
   const section = el('section', undefined, 'reading-column');
