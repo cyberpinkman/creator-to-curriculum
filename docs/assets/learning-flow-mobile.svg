@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="648" viewBox="0 0 480 648" role="img" aria-labelledby="title desc">
+<title id="title">同一组视频，重新组织成学习顺序</title>
+<desc id="desc">虚构示例：从提问技巧、访谈整理、需求与方案的发布顺序，整理为界定问题、开展访谈、整理证据，每一步对应原作。</desc>
+<rect width="480" height="648" rx="12" fill="#f5f5f2"/>
+<g font-family="-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif">
+<text x="28" y="48" fill="#24262b" font-size="28" font-weight="650">先知道从哪条开始。</text>
+<text x="28" y="79" fill="#61646d" font-size="19">同一组内容，按知识重新排序。</text>
+<text x="28" y="124" fill="#61646d" font-size="20">创作者的发布顺序</text>
+<path d="M48 167V267" stroke="#cacccf" stroke-width="2"/>
+<g fill="#fcfcfb" stroke="#d8dadb"><rect x="28" y="143" width="424" height="44" rx="4"/><rect x="28" y="197" width="424" height="44" rx="4"/><rect x="28" y="251" width="424" height="44" rx="4"/></g>
+<g font-size="18" fill="#747881"><text x="42" y="172">01</text><text x="42" y="226">02</text><text x="42" y="280">03</text></g>
+<g font-size="20" fill="#34373d"><text x="83" y="172">别问用户会不会用你的产品</text><text x="83" y="226">访谈做完以后怎么整理</text><text x="83" y="280">需求和方案要分开</text></g>
+<path d="M48 309V340m-7-7 7 7 7-7" stroke="#61646d" stroke-width="2" fill="none"/>
+<text x="83" y="331" fill="#61646d" font-size="19">Agent 梳理知识与先修关系</text>
+<text x="28" y="377" fill="#2457ae" font-size="20">你的学习顺序</text>
+<path d="M48 419V551" stroke="#2457ae" stroke-width="2"/>
+<g fill="#fcfcfb" stroke="#c9d5e7"><rect x="28" y="394" width="424" height="52" rx="4"/><rect x="28" y="460" width="424" height="52" rx="4"/><rect x="28" y="526" width="424" height="52" rx="4"/></g>
+<g font-size="20" fill="#2457ae" font-weight="600"><text x="42" y="428">1</text><text x="42" y="494">2</text><text x="42" y="560">3</text></g>
+<g font-size="21" fill="#24262b" font-weight="600"><text x="78" y="428">先把问题说清楚</text><text x="78" y="494">围绕真实经历做访谈</text><text x="78" y="560">整理证据与假设</text></g>
+<g font-size="17" fill="#2457ae"><text x="365" y="427">原作 03</text><text x="365" y="493">原作 01</text><text x="365" y="559">原作 02</text></g>
+<text x="28" y="622" fill="#61646d" font-size="18">回到原视频学习</text><text x="452" y="622" text-anchor="end" fill="#747881" font-size="16">自写虚构示例</text>
+</g></svg>

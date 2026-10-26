@@ -8,7 +8,10 @@
 
 [看实际界面](#效果预览) · [开始使用](#开始使用) · [真实案例](#真实案例) · [常见问题](#常见问题)
 
-![发布时间不等于学习顺序：将提问技巧、访谈整理、需求与方案，组织为界定问题、开展访谈、整理证据，每步对应原作。](docs/assets/learning-flow.svg)
+<picture>
+  <source media="(max-width: 600px)" srcset="docs/assets/learning-flow-mobile.svg">
+  <img src="docs/assets/learning-flow.svg" alt="发布时间不等于学习顺序：将提问技巧、访谈整理、需求与方案，组织为界定问题、开展访谈、整理证据，每步对应原作。" width="1120">
+</picture>
 
 你想跟一位博主学英语、健身或编程，却面对几十甚至几百条视频：**从哪条开始？学这个之前要会什么？讲过的知识去哪里找？**
 

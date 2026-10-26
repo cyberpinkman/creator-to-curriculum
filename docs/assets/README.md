@@ -1,6 +1,6 @@
 # README 视觉素材
 
-- `learning-flow.svg`：本项目自写的顺序对比示意。三个来源标题来自 `creator_curriculum/demo.py`，不是第三方作品。
+- `learning-flow.svg` 与 `learning-flow-mobile.svg`：本项目自写的顺序对比示意。三个来源标题来自 `creator_curriculum/demo.py`，不是第三方作品。
 - `reader.png`、`map.png`、`materials.png`：实际阅读器截图，使用 `demo-index` 生成的虚构演示。没有真实账号数据、用户记录、第三方课件或重新绘制的界面。
 
 重新制作截图：
