@@ -17,3 +17,6 @@ c2c = "creator_curriculum.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["creator_curriculum*"]
+
+[tool.setuptools.package-data]
+creator_curriculum = ["web/*.html", "web/*.css", "web/*.js"]

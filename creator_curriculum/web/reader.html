@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>__TITLE__</title>
+<style>__STYLE__</style>
+</head>
+<body>
+<a class="skip-link" href="#content">跳到正文</a>
+<header class="topbar">
+  <a class="wordmark" href="#overview" data-route>Creator to Curriculum</a>
+  <nav class="view-nav" aria-label="页面导航">
+    <a href="#overview" data-route data-view="overview">学习概览</a>
+    <a href="#knowledge-map" data-route data-view="map">知识地图</a>
+    <a href="#learning-advice" data-route data-view="advice">学习建议</a>
+    <a href="#materials" data-route data-view="materials">素材与课件</a>
+  </nav>
+</header>
+<aside class="sidebar" aria-label="知识目录">
+  <div class="identity"><p id="creator-name"></p><span id="outline-count"></span></div>
+  <nav id="outline" aria-label="知识点"></nav>
+  <div class="sidebar-footer"><a href="#scope" data-route>范围与依据</a><a href="README.md">Markdown 目录</a><a href="video-index.csv" download>下载视频索引 CSV</a></div>
+</aside>
+<div class="workspace">
+  <div class="reader-tools">
+    <div class="search-box">
+      <label for="search">查找知识点或视频</label>
+      <div class="search-field"><input id="search" type="search" autocomplete="off" placeholder="输入主题、动作或视频关键词"><button id="clear-search" type="button" hidden>清空</button></div>
+    </div>
+    <div class="preferences" aria-label="阅读设置"><button type="button" id="smaller" aria-label="缩小正文">A−</button><button type="button" id="larger" aria-label="放大正文">A＋</button><button type="button" id="theme-toggle">深色</button></div>
+    <div class="mobile-outline"><label for="topic-select">知识目录</label><select id="topic-select"><option value="overview">选择知识点</option></select></div>
+  </div>
+  <main id="content" tabindex="-1"></main>
+  <footer class="page-footer">学习结构由 Agent 整理，教学内容请回到创作者原视频核对。观看记录不等于已经掌握。 <a href="#scope" data-route>范围与导出</a></footer>
+</div>
+<noscript><div class="no-script">交互导航需要 JavaScript。你也可以打开 <a href="README.md">Markdown 目录</a> 或 <a href="materials.md">资料清单</a>。</div></noscript>
+<script id="data" type="application/json">__DATA__</script>
+<script>__SCRIPT__</script>
+</body>
+</html>

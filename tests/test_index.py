@@ -1,6 +1,8 @@
 import copy
+import json
 import tempfile
 import unittest
+from html.parser import HTMLParser
 from pathlib import Path
 
 from creator_curriculum.core import ContractError, digest, validate_index_plan
@@ -59,6 +61,34 @@ class IndexTests(unittest.TestCase):
             self.assertIn(self.video["url"], (out / "video-index.csv").read_text())
             self.assertIn("标题归类", (out / "README.md").read_text())
             self.assertIn('href="index.html#start"', (out / "knowledge-map.svg").read_text())
+
+    def test_offline_reader_embeds_assets_and_preserves_literal_source_markers(self):
+        class ReaderParser(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.in_data = False
+                self.data = []
+                self.remote_assets = []
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == 'script':
+                    self.in_data = attrs.get('id') == 'data'
+                    if attrs.get('src'): self.remote_assets.append(attrs['src'])
+                if tag == 'link' and attrs.get('rel') == 'stylesheet':
+                    self.remote_assets.append(attrs.get('href'))
+            def handle_endtag(self, tag):
+                if tag == 'script': self.in_data = False
+            def handle_data(self, value):
+                if self.in_data: self.data.append(value)
+
+        self.plan['title'] = 'Literal __DATA__ <&> __STYLE__'
+        self.plan['overview'] = '__SCRIPT__ is source text, not a template directive.'
+        with tempfile.TemporaryDirectory() as temporary:
+            out = build_index(self.corpus, self.plan, temporary)
+            parser = ReaderParser()
+            parser.feed((out / 'index.html').read_text())
+            self.assertFalse(parser.remote_assets, 'The offline reader must not need remote scripts or styles')
+            self.assertEqual(json.loads(''.join(parser.data)), json.loads((out / 'index.json').read_text()))
 
 
 if __name__ == "__main__":

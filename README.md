@@ -116,7 +116,7 @@ c2c build-index --corpus .learning/snapshots/creator.json \
   --plan .learning/my-index/index-plan.json --out .learning/my-index
 ```
 
-输出 `index.html`、`knowledge-map.svg`、`README.md`、`video-index.csv`、`materials.md` 和 `index.json`。HTML 离线可用，地图节点和先修/后续链接均可导航；原视频仍在来源平台观看。材料可以保存在输出目录的 `materials/`，仅实际存在的文件才能生成本地文件入口。
+输出 `index.html`、`knowledge-map.svg`、`README.md`、`video-index.csv`、`materials.md` 和 `index.json`。HTML 离线可用：桌面端使用分组目录，每次集中阅读一个知识点；手机端用主题选择器和自动换行的地图。地图、学习建议和资料各有独立入口，搜索覆盖全部知识点与原视频。支持深浅色、正文字号调节、浏览器返回与知识点直达链接；原视频仍在来源平台观看。材料可以保存在输出目录的 `materials/`，仅实际存在的文件才能生成本地文件入口。
 
 索引模式允许没有转写的作品，但明确标记为标题归类。有内容定位的作品必须提供 corpus 中真实片段的逐字引文；系统不会把标题升级成内容证据，也不会把课程生成或视频观看记为掌握。页面中的顺序与学习建议属于 Agent 组织。
 
