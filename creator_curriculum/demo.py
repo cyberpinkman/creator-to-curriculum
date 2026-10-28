@@ -97,7 +97,7 @@ def build_demo(workspace):
     return render(root)
 
 
-def build_index_demo(output):
+def _build_legacy_index_demo(output):
     """Demonstrate the default navigation workflow without acquiring or transcribing."""
     from pathlib import Path
     from .core import atomic_text, digest
@@ -115,7 +115,24 @@ def build_index_demo(output):
                                      'interview': '带着上一节的问题假设，寻找一次真实发生的经历。先问处理过程，再追问花费与替代办法；把原话和自己的解释分开记录。',
                                      'synthesis': '回到访谈记录，按任务与情境比较实际行为。为每个问题假设写出支持证据、一个潜在反例和下一次要验证的问题。'}[tid],
                            prerequisites=deps, watch_for=focus, self_check=check,
-                           video_ids=[vid], recommended_ids=[vid]))
+                           video_ids=[vid], recommended_ids=[vid],
+                           task={'objective': question,
+                                 'primary_video_id': vid,
+                                 'stop_when': check + ' 写下一句自己的回答或尚未解决的问题，就可以停下。',
+                                 'practice_minutes': 5}))
+    # Two topics intentionally share a source, but select different source evidence.
+    # This demonstrates topic-level association without inventing a watch interval.
+    topics[0]['video_evidence'] = {'v_foundation': ['s1', 's2']}
+    topics[1]['video_evidence'] = {'v_questions': ['s1']}
+    topics[2]['video_ids'].append('v_questions')
+    topics[2]['video_evidence'] = {'v_synthesis': ['s1', 's2'], 'v_questions': ['s2']}
+    reviews = {
+        video['id']: {
+            'note': '仓库自写虚构文本；引文时间只展示证据关联机制，没有对应的可播放视频。',
+            'evidence': [{'segment_id': segment['id'], 'quote': segment['text']}
+                         for segment in video['segments']]
+        } for video in corpus['videos'] if video['id'] != 'v_update'
+    }
     materials = [
         ('problem', '问题陈述检查表', 'problem-checklist.md',
          '先写清谁、情境、任务与障碍，再检查有没有把功能方案混进问题。',
@@ -131,17 +148,27 @@ def build_index_demo(output):
         # A rerun must not overwrite a learner's filled-in notes.
         if not (out/'materials'/filename).exists():
             atomic_text(out/'materials'/filename, body)
-    plan = dict(schema_version=1, source_hash=digest(corpus), title='从零开始学用户访谈｜虚构演示',
+    plan = dict(schema_version=1, package_id='demo-user-interview',
+                source_hash=digest(corpus), title='从零开始学用户访谈｜虚构演示',
                 goal='先找知识点，再回到相应来源。', overview='将零散内容组织成“界定问题 → 开展访谈 → 整理证据”的学习路线。选择一个问题，查看对应来源、观看重点与记录模板。全部为仓库自写演示，不调用模型。',
-                topics=topics, start_path=['problem', 'interview', 'synthesis'], reviews={},
+                topics=topics, start_path=['problem', 'interview', 'synthesis'], reviews=reviews,
+                learning_paths=[{'id': 'first-question', 'title': '先完成一个访谈问题',
+                                 'topic_ids': ['problem', 'interview'], 'prerequisite_exemptions': []}],
                 materials=[dict(title=title, description=description, origin='agent',
                                 status='自写演示模板 · 本地 Markdown', url=None,
                                 local_path='materials/'+filename, topic_ids=[tid])
                            for tid, title, filename, description, _ in materials],
-                learning_advice=['一次选择一个知识点，尝试复述后再回到证据核对。',
+                learning_advice=['一次选择一个知识点，尝试复述后再回到证据核对。每步的练习时间是 Agent 设计的估算。',
                                  '从资料页打开记录模板，填写自己的实际观察。空白表示尚未记录，不代表没有问题或已经通过。',
+                                 '可以分别记录看过、练习、待复习和自报掌握；下次从概览继续。换浏览器或访问地址前先导出学习记录。',
                                  '完成一轮访谈后，回看自己的提问和记录：哪些是对方的事实，哪些只是自己的猜测？'],
                 limitations=['全部内容为仓库自写虚构材料，没有真实原视频链接。', '4 条虚构记录中，3 条教学记录进入地图；1 条更新通知保留在 corpus 中。'])
     write_json(out/'corpus.json', corpus)
     write_json(out/'index-plan.json', plan)
     return build_index(corpus, plan, out)
+
+
+def build_index_demo(output, *, scenario="concept"):
+    """Exercise the default v2 learning-design workflow with authored fixtures."""
+    from .scenarios import build_scenario
+    return build_scenario(scenario, output)

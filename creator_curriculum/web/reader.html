@@ -21,7 +21,7 @@
 <aside class="sidebar" aria-label="知识目录">
   <div class="identity"><p id="creator-name"></p><span id="outline-count"></span></div>
   <nav id="outline" aria-label="知识点"></nav>
-  <div class="sidebar-footer"><a href="#scope" data-route>范围与依据</a><a href="README.md">Markdown 目录</a><a href="video-index.csv" download>下载视频索引 CSV</a></div>
+  <div class="sidebar-footer"><a href="#progress" data-route>我的学习记录</a><a href="#scope" data-route>范围与依据</a><a href="README.md">Markdown 目录</a><a href="video-index.csv" download>下载视频索引 CSV</a></div>
 </aside>
 <div class="workspace">
   <div class="reader-tools">
@@ -32,6 +32,7 @@
     <div class="preferences" aria-label="阅读设置"><button type="button" id="smaller" aria-label="缩小正文">A−</button><button type="button" id="larger" aria-label="放大正文">A＋</button><button type="button" id="theme-toggle">深色</button></div>
     <div class="mobile-outline"><label for="topic-select">知识目录</label><select id="topic-select"><option value="overview">选择知识点</option></select></div>
   </div>
+  <aside id="record-status" class="storage-notice" role="status" hidden></aside>
   <main id="content" tabindex="-1"></main>
   <footer class="page-footer">学习结构由 Agent 整理，教学内容请回到创作者原视频核对。观看记录不等于已经掌握。 <a href="#scope" data-route>范围与导出</a></footer>
 </div>

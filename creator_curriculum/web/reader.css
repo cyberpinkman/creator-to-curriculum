@@ -823,3 +823,104 @@
                                                                                                                                                                                                                                                                                                                                                                                                                             details {
                                                                                                                                                                                                                                                                                                                                                                                                                               display:block}
                                                                                                                                                                                                                                                                                                                                                                                                                             }
+
+/* A small learning task and private record fit within the existing reading column. */
+.path-control {margin:24px 0 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.path-control label,.path-position,.task-meta,.save-status {font-size:13px;color:var(--muted)}
+.path-control select {max-width:100%;padding:6px 9px;background:var(--paper);border:1px solid var(--line);border-radius:4px}
+.path-control details {flex-basis:100%;font-size:14px}
+.task-card {border-left:3px solid var(--accent);background:var(--sidebar);padding:18px 22px;margin:22px 0}
+.task-card h2 {margin:0 0 10px;font-size:17px}
+.task-card p + p,.task-card a + p {margin-top:10px}
+.task-source {display:inline-block;margin-top:12px}
+.task-stop {font-size:15px}
+.topic-locations {margin:10px 0;color:var(--accent);font-size:14px}
+.copy-time {display:block;margin-top:8px;font-size:12px;padding:3px 8px}
+.record-editor {border-top:1px solid var(--line);margin-top:30px;padding-top:4px}
+.record-flags {display:flex;flex-wrap:wrap;gap:12px 22px;margin:16px 0}
+.record-flags label {display:flex;gap:7px;align-items:center;font-size:14px}
+.record-flags input {accent-color:var(--accent)}
+.record-editor > label {display:block;margin-bottom:6px;font-size:14px}
+.record-editor textarea {display:block;resize:vertical;width:100%;font:inherit;line-height:1.6;color:var(--ink);background:var(--paper);padding:10px 12px;border:1px solid var(--line);border-radius:4px}
+.record-editor textarea:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+.save-status {margin:8px 0;min-height:1.6em}
+.record-editor > a {font-size:13px}
+.path-navigation {margin-top:30px;display:flex;flex-direction:column;gap:14px;align-items:flex-start}
+.storage-notice {max-width:960px;margin:0 auto 20px;padding:12px 16px;border:1px solid var(--accent);font-size:14px}
+.record-actions {display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:24px 0 12px}
+.record-actions button {padding:8px 12px}
+.record-actions input {max-width:100%}
+.record-actions label {font-size:14px}
+.saved-note {white-space:pre-wrap}
+.progress-item {border-top:1px solid var(--line);margin-top:20px;padding-bottom:8px}
+.progress-item h2 {font-size:18px;margin-top:20px}
+@media(max-width:600px) {.task-card {padding:15px}.record-flags {gap:10px 14px}.record-actions {align-items:flex-start;flex-direction:column}}
+
+.source-review { margin:18px 0; padding:16px; border-left:3px solid var(--accent); background:var(--soft); }
+.source-review button { margin-top:12px; padding:8px 12px; }
+
+.study-position { margin:18px 0 10px; font-weight:600; }
+.study-controls { display:flex; flex-wrap:wrap; align-items:center; gap:12px 24px; margin:16px 0 24px; }
+
+/* The learning design uses the same readable column as the source index. */
+.learner-brief {margin:24px 0;padding-bottom:18px;border-bottom:1px solid var(--line)}
+.learner-brief h2,.capability-coverage h2 {font-size:19px;margin:18px 0 12px}
+.learner-brief details {margin-top:12px;font-size:14px}
+.learner-brief h3,.activity-card h3,.activity-choices h3 {font-size:15px;margin:18px 0 8px}
+.learner-brief ul,.activity-card ul,.activity-card ol,.readiness-note ul,.design-issues ul {padding-left:22px;line-height:1.7}
+.activity-kind {font-size:13px;font-weight:600;color:var(--accent);margin-bottom:6px}
+.activity-output {font-weight:600}
+.activity-card .action {display:inline-block;margin-top:18px}
+.activity-sources {margin-top:20px;font-size:14px}
+.activity-sources > a {display:block;margin-top:18px}
+.readiness-note {border-left:2px solid var(--line);padding:8px 12px;margin:14px 0;font-size:14px}
+.readiness-label {font-weight:600}
+.readiness-note[data-readiness="blocked"] {border-left-color:var(--accent)}
+.readiness-note ul {margin:8px 0 0}
+.capability-coverage {margin-top:34px;border-top:1px solid var(--line);padding-top:6px}
+.capability-item {border-top:1px solid var(--line);margin-top:18px;padding-top:2px}
+.capability-item h3 {font-size:16px;margin:16px 0 8px}
+.capability-item p {font-size:14px;margin:8px 0}
+.coverage-label {color:var(--accent)}
+.design-issues {margin:18px 0;padding:12px 16px;background:var(--sidebar);font-size:14px}
+.design-issues h3 {font-size:15px;margin:0 0 10px}
+.activity-choices {margin:24px 0}
+.activity-choices ul {padding-left:20px}
+.activity-choices li {margin:12px 0}
+.activity-choices li p {font-size:14px;color:var(--muted);margin:5px 0}
+.material-text-heading {font-size:15px;margin:22px 0 10px}
+.material-text-preview {white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font:14px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace;background:var(--sidebar);border:1px solid var(--line);padding:16px;max-width:100%;overflow:auto}
+
+/* Attempts and feedback keep the existing reading flow and explicit navigation. */
+.attempt-section {margin-top:32px;border-top:1px solid var(--line);padding-top:8px}
+.attempt-section h2 {font-size:20px;margin-bottom:12px}
+.attempt-section h3,.feedback-history > h3 {font-size:17px;margin:26px 0 12px}
+.attempt-section h4,.attempt-history h4 {font-size:15px;margin:16px 0 8px}
+.attempt-form {margin-top:20px}
+.attempt-form > label {display:block;margin:16px 0 6px;font-size:14px;font-weight:600}
+.attempt-form textarea,.attempt-form select {display:block;width:100%;font:inherit;line-height:1.6;color:var(--ink);background:var(--paper);padding:9px 11px;border:1px solid var(--line);border-radius:4px}
+.attempt-form textarea {resize:vertical}
+.attempt-form select {width:auto;max-width:100%}
+.attempt-form textarea:focus-visible,.attempt-form select:focus-visible {outline:2px solid var(--accent);outline-offset:3px}
+.attempt-meta {font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.attempt-item {border-top:1px solid var(--line);padding:14px 0;font-size:14px}
+.attempt-item > summary {font-weight:600;cursor:pointer;overflow-wrap:anywhere}
+.attempt-item p,.feedback-card p {margin:10px 0;overflow-wrap:anywhere}
+.attempt-item ul,.attempt-item ol,.feedback-card ul,.feedback-card ol {padding-left:22px;line-height:1.7;overflow-wrap:anywhere}
+.attempt-item > a {display:inline-block;margin-top:12px}
+.feedback-card {border-left:3px solid var(--accent);padding:4px 18px 12px;margin:18px 0 26px;background:var(--sidebar)}
+.feedback-card > h3 {margin-top:14px}
+.feedback-criteria > li {margin:18px 0}
+.feedback-criteria h4 {font-weight:600}
+.feedback-outcome {color:var(--accent);font-weight:600}
+.feedback-criteria blockquote {border-left:2px solid var(--line);padding-left:12px;margin:10px 0}
+.feedback-notice {padding:10px 12px;background:var(--sidebar);border-left:2px solid var(--accent);font-size:14px}
+.feedback-observations {margin:18px 0}
+.feedback-card button:disabled {opacity:.6;cursor:not-allowed}
+@media(max-width:600px) {.feedback-card {padding-right:12px;padding-left:12px}.attempt-section h2 {font-size:18px}}
+.adopted-guidance {border-left:3px solid var(--accent);background:var(--sidebar);padding:16px 20px;margin:22px 0}
+.adopted-guidance h2 {font-size:19px;margin:0 0 12px}
+.adopted-guidance h3 {font-size:16px;margin:18px 0 10px}
+.adopted-guidance p {margin:10px 0}
+.adopted-guidance ol {padding-left:22px;line-height:1.7}
+.adopted-guidance > a {display:inline-block;font-size:14px;margin:6px 0}

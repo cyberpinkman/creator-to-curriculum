@@ -3,9 +3,9 @@ import json
 from pathlib import Path
 import sys
 
-from .adapters import discover, import_video_learning, parse_subtitles
-from .core import ContractError, read_json, require, validate_corpus, write_json
-from .pipeline import initialize, inspect, load_workspace, prepare, synthesize
+from .adapters import attach_transcript, discover, import_video_learning
+from .core import ContractError, read_json, require, write_json
+from .pipeline import initialize, inspect, prepare, synthesize
 from .render import render
 from .index import build_index
 from .usage import STAGES, estimate, import_codex_usage, import_response_usage, record_usage, usage_report
@@ -23,6 +23,35 @@ def parser():
     init.add_argument("--language", default="zh-CN")
     init.add_argument("--minutes", type=int, default=30)
     init.add_argument("--max-chars", type=int, default=12000)
+    nav_init = commands.add_parser("init-index", help="Start the default learner-aware planning handoff without full extraction")
+    nav_init.add_argument("--corpus", required=True)
+    nav_init.add_argument("--out", required=True)
+    nav_init.add_argument("--goal", required=True)
+    nav_init.add_argument("--level", help="Known starting level; omit when unknown")
+    nav_init.add_argument("--minutes", type=int, help="Available minutes per session; omit when unknown")
+    nav_init.add_argument("--language", default="zh-CN")
+    nav_init.add_argument("--mode", choices=["systematic", "problem", "explore"], default="systematic")
+    nav_init.add_argument("--known", action="append", default=[], help="Prior knowledge; repeat as needed")
+    nav_init.add_argument("--constraint", action="append", default=[])
+    nav_init.add_argument("--assumption", action="append", default=[])
+    nav_prepare = commands.add_parser("prepare-index", help="Refresh planning inputs after source/learner edits, preserving the existing plan")
+    nav_prepare.add_argument("workspace")
+    attempt = commands.add_parser("record-attempt", help="Record a real learner submission or blocker; never infer mastery")
+    attempt.add_argument("workspace")
+    attempt.add_argument("--path", required=True)
+    attempt.add_argument("--step", required=True)
+    response_input = attempt.add_mutually_exclusive_group()
+    response_input.add_argument("--response", default="")
+    response_input.add_argument("--response-file")
+    attempt.add_argument("--blocker", default="")
+    attempt.add_argument("--artifact", action="append", default=[], help="Artifact reference only; not proof of inspection")
+    attempt.add_argument("--work-origin", choices=["learner", "assisted", "reference", "unknown"], default="unknown")
+    feedback_prepare = commands.add_parser("prepare-feedback", help="Import attempts and prepare an evidence-aware Agent review handoff")
+    feedback_prepare.add_argument("workspace")
+    feedback_prepare.add_argument("--attempts", help="An attempt, attempts list, or exported browser record")
+    feedback_record = commands.add_parser("record-feedback", help="Validate Agent feedback, preserve history and rebuild the learning page")
+    feedback_record.add_argument("workspace")
+    feedback_record.add_argument("--file", required=True)
     source = commands.add_parser("import-video-learning", help="Read one discovery snapshot and its transcripts without modifying the library")
     source.add_argument("--db", required=True)
     source.add_argument("--discovery-id", required=True)
@@ -44,11 +73,14 @@ def parser():
     attach.add_argument("--source", choices=["machine_transcript", "platform_subtitles", "human_transcript", "unknown"], required=True)
     nav_demo = commands.add_parser("demo-index", help="Build a fictional interactive knowledge map offline")
     nav_demo.add_argument("--out", default=".learning/demo-index")
+    nav_demo.add_argument("--scenario", choices=["concept", "practice", "project", "comparison", "lookup"], default="concept")
+    nav_demo.add_argument("--feedback", action="store_true", help="Include explicitly synthetic learner attempts and Agent feedback")
     demo = commands.add_parser("demo", help="Build a complete fictional example offline; no model or download required")
     demo.add_argument("--out", default=".learning/demo")
     index = commands.add_parser("build-index", help="Build a knowledge map and original-video index without full transcription")
     index.add_argument("--corpus", required=True)
     index.add_argument("--plan", required=True)
+    index.add_argument("--learner", help="Current learner.json; required for v2 plans")
     index.add_argument("--out", required=True)
     usage = commands.add_parser("usage-record", help="Record provider-reported token usage or explicitly unknown usage")
     usage.add_argument("workspace")
@@ -84,9 +116,39 @@ def parser():
 def run(args):
     if args.command == "demo-index":
         from .demo import build_index_demo
-        return {"index": str(build_index_demo(args.out)), "source": "Fictional authored example; no model calls"}
+        if args.feedback:
+            from .scenarios import build_feedback_scenario
+            out = build_feedback_scenario(args.scenario, args.out)
+        else:
+            out = build_index_demo(args.out, scenario=args.scenario)
+        return {"index": str(out), "scenario": args.scenario, "synthetic_feedback": args.feedback,
+                "source": "Fictional authored example; no model calls or real learner outcomes"}
+    if args.command == "init-index":
+        from .index_workflow import initialize_index
+        return initialize_index(args.out, read_json(args.corpus), {
+            "schema_version": 1, "goal": args.goal, "level": args.level, "language": args.language,
+            "minutes_per_session": args.minutes, "mode": args.mode,
+            "prior_knowledge": args.known, "constraints": args.constraint, "assumptions": args.assumption})
+    if args.command == "prepare-index":
+        from .index_workflow import prepare_index
+        return prepare_index(args.workspace)
+    if args.command == "record-attempt":
+        from .feedback import record_attempt
+        return record_attempt(args.workspace, path_id=args.path, step_id=args.step,
+                              response=args.response, response_file=args.response_file,
+                              blocker=args.blocker, artifact_refs=args.artifact, work_origin=args.work_origin)
+    if args.command == "prepare-feedback":
+        from .feedback import prepare_feedback
+        return prepare_feedback(args.workspace, args.attempts)
+    if args.command == "record-feedback":
+        from .feedback import record_feedback
+        return record_feedback(args.workspace, args.file)
     if args.command == "build-index":
-        return {"index": str(build_index(read_json(args.corpus), read_json(args.plan), args.out))}
+        out = build_index(read_json(args.corpus), read_json(args.plan), args.out,
+                          learner=read_json(args.learner) if args.learner else None)
+        design = read_json(out / "learning-design.json")
+        return {"index": str(out), "learning_design": str(out / "learning-design.json"),
+                "planning_status": design["status"], "issues": design["issues"]}
     if args.command == "usage-import-response":
         return import_response_usage(args.workspace, args.file, stage=args.stage,
                                      event_id=args.event_id, video_ids=args.video_ids)
@@ -115,13 +177,7 @@ def run(args):
     if args.command == "prepare":
         return prepare(args.workspace)
     if args.command == "attach-transcript":
-        root, corpus, _, _ = load_workspace(args.workspace)
-        video = next((v for v in corpus["videos"] if v["id"] == args.video), None)
-        require(video is not None, f"Unknown video: {args.video}")
-        video.update(segments=parse_subtitles(args.file), status="ready", reason="", transcript_source=args.source)
-        validate_corpus(corpus)
-        write_json(root / "corpus.json", corpus)
-        return prepare(root)
+        return attach_transcript(args.workspace, args.video, args.file, args.source)
     if args.command == "synthesis":
         data = synthesize(args.workspace, allow_partial=args.allow_partial)
         return {"path": str((Path(args.workspace) / "synthesis.json").resolve()), "input_hash": data["input_hash"], "claim_count": len(data["claims"])}

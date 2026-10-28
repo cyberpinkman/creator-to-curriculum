@@ -8,7 +8,8 @@ import re
 import sqlite3
 import subprocess
 
-from .core import ContractError, digest, require, url, validate_corpus
+from .core import (ContractError, digest, read_json, require, url, validate_corpus,
+                   validate_index_learner, write_json)
 
 
 def now():
@@ -165,3 +166,27 @@ def parse_subtitles(path):
             segments.append({"id": f"s{len(segments) + 1:05d}", "start": seconds(match[1]), "end": seconds(match[2]), "text": body})
     require(segments, "No timestamped subtitle cues found")
     return segments
+
+
+def attach_transcript(workspace, video_id, transcript_path, source):
+    """Attach source evidence independently of optional deep extraction jobs."""
+    from .index_workflow import prepare_index, resolve_index_plan_identity
+    from .pipeline import load_workspace, prepare
+
+    root = Path(workspace)
+    corpus = validate_corpus(read_json(root / 'corpus.json'))
+    learner = read_json(root / 'learner.json')
+    is_index = ((root / 'index-workspace.json').exists() or (root / 'index-plan.json').exists()
+                or isinstance(learner, dict) and learner.get('schema_version') == 1)
+    if is_index:
+        validate_index_learner(learner)
+        # Validate the destination identity before any source update.
+        resolve_index_plan_identity(root, {'schema_version': 2}, corpus)
+    else:
+        load_workspace(root)  # Deep learner/config/job checks also happen before mutation.
+    video = next((item for item in corpus['videos'] if item['id'] == video_id), None)
+    require(video is not None, f'Unknown video: {video_id}')
+    video.update(segments=parse_subtitles(transcript_path), status='ready', reason='', transcript_source=source)
+    validate_corpus(corpus)
+    write_json(root / 'corpus.json', corpus)
+    return prepare_index(root) if is_index else prepare(root)
